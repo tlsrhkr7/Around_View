@@ -50,9 +50,10 @@ The goal of this project is to improve open-source/ROS proficiency and implement
 - C++ (main implementation)
 
 ## Demo / Results
-- Intermediate results: per-camera top-view transform
-- Final result: stitched around-view image with vehicle overlay  
-(See the attached report slides for screenshots and outputs.)
+🎬 Demo (YouTube Shorts): https://youtube.com/shorts/VkxauFfo35o
+
+[![Demo Video](https://img.youtube.com/vi/VkxauFfo35o/hqdefault.jpg)](https://youtube.com/shorts/VkxauFfo35o)
+
 
 ## How to Run (Typical Flow)
 > Exact commands and topics may differ depending on your repo layout.  
