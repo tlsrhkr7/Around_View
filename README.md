@@ -1,92 +1,115 @@
-# Around-View Based Parking Assist (ROS + MORAI)
+# 🚗 Around View Parking Assist
 
-An around-view (bird’s-eye / top-view) parking assist prototype built with **ROS** and the **MORAI** simulator.  
-This project generates a **360° surround view** by transforming 4 camera streams (front/rear/left/right) into a unified top-view image using homography and image stitching.
+> **어라운드 뷰 기반 주차 보조 시스템** — ROS와 MORAI 시뮬레이터로 구현한 어라운드 뷰(조감도/탑뷰) 주차 보조 프로토타입입니다. 전/후/좌/우 4개 카메라 영상을 호모그래피와 이미지 스티칭으로 변환해 360° 통합 탑뷰 이미지를 생성합니다.
 
-## Motivation
-I was inspired by autonomous parking solutions that leverage around-view cameras to solve parking missions.  
-The goal of this project is to improve open-source/ROS proficiency and implement a practical around-view pipeline end-to-end.
+🎬 **데모 영상 (YouTube Shorts)**: https://youtube.com/shorts/VkxauFfo35o
 
-## What it does
-- Subscribes to **4 camera images** (front/rear/left/right)
-- Applies **top-view transformation** per camera using homography
-- Stitches the transformed images into a single **around-view canvas**
-- Overlays a **vehicle top image** in the center
-- Publishes the final around-view image for visualization (e.g., `rqt_image_view`)
+---
 
-## Key Features
-- Top-view conversion using OpenCV:
-  - `cv::findHomography`
-  - `cv::warpPerspective`
-- Simple image composition pipeline:
-  - `transformToTopView()`
-  - `CreateAroundView()`
-  - `attachVehicleTopView()`
-  - `CropSides()` (reduce distortion on side boundaries)
-- Supports quick calibration iteration via configurable source/destination points
+## 📌 프로젝트 개요
 
-## System Overview
-**Inputs**
-- `front_img_`, `rear_img_`, `left_img_`, `right_img_`: camera frames
-- `src_points_`, `dst_points_`: homography points for front/rear
-- `side_src_points_`, `side_dst_points_`: homography points for left/right
+어라운드 뷰 카메라를 활용해 주차 미션을 해결하는 자율주행 주차 솔루션에서 영감을 받아 개발한 프로젝트입니다. 오픈소스/ROS 숙련도를 높이고, 실용적인 어라운드 뷰 파이프라인을 엔드투엔드로 구현하는 것을 목표로 합니다.
 
-**Outputs**
-- A single stitched **around-view image** (top-down)
+주요 동작은 다음과 같습니다.
+- 4개 카메라 영상(전/후/좌/우) 구독
+- 각 카메라별 호모그래피를 적용한 탑뷰 변환
+- 변환된 영상을 하나의 어라운드 뷰 캔버스로 스티칭
+- 중앙에 차량 탑뷰 이미지 오버레이
+- 최종 어라운드 뷰 이미지를 시각화용으로 발행 (예: rqt_image_view)
 
-## Architecture
-### Nodes / Classes
-- `AroundViewNode`
-  - Receives images from each camera
-  - Publishes the final stitched around-view output
-- `AroundViewProcessor`
-  - Performs homography transforms and stitching
-  - Handles vehicle overlay and final cropping
+---
 
-## Tech Stack
-- ROS (image subscribe/publish)
-- MORAI simulator (camera sources, testing)
-- OpenCV (homography, warping, stitching utilities)
-- C++ (main implementation)
+## ✨ 주요 기능
 
-## Demo / Results
-🎬 Demo (YouTube Shorts): https://youtube.com/shorts/VkxauFfo35o
+| 기능 | 설명 |
+|------|------|
+| 탑뷰 변환 | OpenCV cv::findHomography, cv::warpPerspective 사용 |
+| 이미지 합성 | transformToTopView() → CreateAroundView() → attachVehicleTopView() |
+| 측면 보정 | CropSides()로 측면 경계의 왜곡 감소 |
+| 캘리브레이션 | source/destination 포인트 설정으로 빠른 보정 반복 지원 |
 
-[![Demo Video](https://img.youtube.com/vi/VkxauFfo35o/hqdefault.jpg)](https://youtube.com/shorts/VkxauFfo35o)
+---
 
+## 🏗️ 시스템 아키텍처
 
-## How to Run (Typical Flow)
-> Exact commands and topics may differ depending on your repo layout.  
-> The usual flow is:
+```
+[전방]  [후방]  [좌측]  [우측]  카메라 4개
+   |      |      |      |
+   +------+------+------+
+              |
+              v
+      [AroundViewNode] --- 각 카메라 영상 수신 / 최종 결과 발행
+              |
+              v
+   [AroundViewProcessor] --- 호모그래피 변환 + 스티칭 + 차량 오버레이 + 크롭
+              |
+              v
+      [통합 어라운드 뷰 이미지 (탑다운)]
+```
 
-1. Launch MORAI and enable/attach 4 camera feeds to the vehicle.
-2. Run this ROS node/package to subscribe to the 4 camera topics.
-3. Visualize output:
-   - `rqt_image_view` (recommended)  
-   - or any ROS image viewer
+### 입력 / 출력
+- **입력**: front_img_, rear_img_, left_img_, right_img_ (카메라 프레임), src_points_/dst_points_ (전/후 호모그래피), side_src_points_/side_dst_points_ (좌/우 호모그래피)
+- **출력**: 하나로 스티칭된 어라운드 뷰 이미지 (탑다운)
 
-## Calibration Notes
-- Homography accuracy is highly dependent on camera placement and FOV.
-- Start by tuning `src_points` / `dst_points` per camera until the lane/ground plane aligns.
-- Side cameras often need extra care due to perspective distortion and overlap boundary artifacts.
+### 노드 / 클래스
+- **AroundViewNode**: 각 카메라로부터 영상 수신 및 최종 스티칭 결과 발행
+- **AroundViewProcessor**: 호모그래피 변환과 스티칭 수행, 차량 오버레이 및 최종 크롭 처리
 
-## Known Issues / Limitations
-- **Latency / delay** can occur due to compute load and camera publish rates.
-- Visible seams on overlapping regions (simple stitching without blending).
-- Around-view range and coverage depend on camera configuration (FOV/position).
+---
 
-## Future Work
-- Reduce delay by optimizing processing and adjusting camera frequency
-- Apply blending / seam optimization on overlap areas
-- Expand the around-view coverage range
-- Extend to driving functions:
-  - lane-based vehicle position analysis (lane departure warning)
-  - parking slot & obstacle detection + path planning
-  - mapping/localization using around-view features
+## 🛠️ 기술 스택
 
-## Development Timeline (Summary)
-- Environment setup (ROS, MORAI)
-- Camera placement & calibration in MORAI
-- Top-view transform + stitching implementation
-- Final composition & performance tuning
-- Visualization and presentation material preparation
+| 분류 | 기술 |
+|------|------|
+| 미들웨어 | ROS (이미지 구독/발행) |
+| 시뮬레이터 | MORAI (카메라 소스, 테스트) |
+| 영상 처리 | OpenCV (호모그래피, 워핑, 스티칭) |
+| 언어 | C++ |
+
+---
+
+## 🚀 실행 방법
+
+> 정확한 명령어와 토픽은 레포 구성에 따라 다를 수 있습니다.
+
+1. MORAI를 실행하고 차량에 4개 카메라 피드를 연결/활성화
+2. 본 ROS 노드/패키지를 실행하여 4개 카메라 토픽 구독
+3. 출력 시각화: `rqt_image_view` (권장) 또는 임의의 ROS 이미지 뷰어
+
+### 캘리브레이션 참고
+- 호모그래피 정확도는 카메라 배치와 화각(FOV)에 크게 의존합니다.
+- 각 카메라의 src_points / dst_points를 차선·지면이 정렬될 때까지 튜닝하세요.
+- 측면 카메라는 원근 왜곡과 중첩 경계 아티팩트 때문에 특히 주의가 필요합니다.
+
+---
+
+## ⚠️ 문제점 및 향후 계획
+
+### 알려진 문제 / 한계
+- 연산 부하와 카메라 발행 속도로 인한 지연(latency) 발생 가능
+- 중첩 영역의 이음새(seam)가 보임 (블렌딩 없는 단순 스티칭)
+- 어라운드 뷰 범위와 커버리지가 카메라 구성(FOV/위치)에 의존
+
+### 향후 계획
+- 처리 최적화 및 카메라 주기 조정으로 지연 감소
+- 중첩 영역에 블렌딩 / 이음새 최적화 적용
+- 어라운드 뷰 커버리지 범위 확장
+- 주행 기능으로 확장
+  - 차선 기반 차량 위치 분석 (차선 이탈 경고)
+  - 주차 슬롯 및 장애물 검출 + 경로 계획
+  - 어라운드 뷰 특징을 활용한 매핑/위치 추정
+
+---
+
+## 📅 개발 진행 요약
+1. 환경 구성 (ROS, MORAI)
+2. MORAI 내 카메라 배치 및 캘리브레이션
+3. 탑뷰 변환 + 스티칭 구현
+4. 최종 합성 및 성능 튜닝
+5. 시각화 및 발표 자료 준비
+
+---
+
+## 👤 개발자
+
+- **tlsrhkr7** (Dongjun Shin) — 오픈소스개발프로젝트
