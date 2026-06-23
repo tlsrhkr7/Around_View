@@ -2,7 +2,11 @@
 
 ROS와 MORAI 시뮬레이터로 구현한 어라운드 뷰(탑뷰) 주차 보조 프로토타입입니다. 전/후/좌/우 4개 카메라 영상을 호모그래피와 이미지 스티칭으로 변환해 360° 통합 탑뷰 이미지를 생성합니다.
 
-데모 영상(YouTube Shorts): https://youtube.com/shorts/VkxauFfo35o
+## 데모 영상
+
+아래 이미지를 클릭하면 YouTube에서 시연 영상을 볼 수 있습니다.
+
+[<img src="https://img.youtube.com/vi/VkxauFfo35o/0.jpg" width="320">](https://youtube.com/shorts/VkxauFfo35o)
 
 ## 개요
 
